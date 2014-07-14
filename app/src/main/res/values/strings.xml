@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">JuLabLibrary</string>
+
+    <string name="app_name">JuLibDemo</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_network">Network</string>
+    <string name="menu_concurrent">Concurrent</string>
 </resources>

@@ -18,25 +18,25 @@ import jul.lab.library.log.Log;
  * Created by JuL on 2014-07-12.
  */
 public abstract class NetStateChangeReceiver extends BroadcastReceiver{
-    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-    private ScheduledFuture<Void> future = null;
+    private ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
+    private ScheduledFuture<Void> mScheduledFuture = null;
 
-    public static final long NETSTATE_DELAY_MILLIS		= 6000;
+    public static final long NETSTATE_DELAY_MILLIS = 6000;
 
     private class Worker implements Callable<Void> {
-        private Context context;
-        private Intent intent;
+        private Context mContext;
+        private Intent mIntent;
 
         public Worker(Context context, Intent intent){
-            this.context = context;
-            this.intent = intent;
+            this.mContext = context;
+            this.mIntent = intent;
         }
 
         @Override
         public Void call() throws Exception {
-            String type = NetState.isAvailable(context);
+            String type = NetState.isAvailable(mContext);
             Log.d("NetState Changed: Connected. type = ", type);
-            onConnected(context, type);
+            onConnected(mContext, type);
             return null;
         }
 
@@ -52,9 +52,9 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
         }
 
         //일단 예약된 작업이 있으면 취소.
-        if(future != null){
-            future.cancel(true);
-            future = null;
+        if(mScheduledFuture != null){
+            mScheduledFuture.cancel(true);
+            mScheduledFuture = null;
         }
 
 		/*
@@ -70,7 +70,7 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
         }
         else{
             if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
-                future = executor.schedule(new Worker(context, intent), NETSTATE_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+                mScheduledFuture = mScheduledThreadPoolExecutor.schedule(new Worker(context, intent), NETSTATE_DELAY_MILLIS, TimeUnit.MILLISECONDS);
             }
         }
 

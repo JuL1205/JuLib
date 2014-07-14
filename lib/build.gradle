@@ -1,12 +1,12 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 20
+    compileSdkVersion 19
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "jul.lib.test"
-        minSdkVersion 9
+        applicationId "jul.lab.library"
+        minSdkVersion 8
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
@@ -22,5 +22,4 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:19.+'
-    compile project(":lib")
 }
