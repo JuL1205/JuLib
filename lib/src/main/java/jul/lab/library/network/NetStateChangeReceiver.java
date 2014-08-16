@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
@@ -17,29 +19,41 @@ import jul.lab.library.log.Log;
 /**
  * Created by JuL on 2014-07-12.
  */
-public abstract class NetStateChangeReceiver extends BroadcastReceiver{
+public class NetStateChangeReceiver extends BroadcastReceiver{
     private ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
-    private ScheduledFuture<Void> mScheduledFuture = null;
+    private ScheduledFuture<?> mScheduledFuture = null;
 
-    public static final long NETSTATE_DELAY_MILLIS = 6000;
+    private static long NETSTATE_DELAY_MILLIS;
+    private static final long DEFAULT_DELAY = 6000;
 
-    private class Worker implements Callable<Void> {
+    public NetStateChangeReceiver(){
+        this(DEFAULT_DELAY);
+    }
+
+    public NetStateChangeReceiver(long delayMillis){
+        NETSTATE_DELAY_MILLIS = delayMillis;
+    }
+
+    private class Worker implements Runnable {
         private Context mContext;
-        private Intent mIntent;
 
-        public Worker(Context context, Intent intent){
+        public Worker(Context context){
             this.mContext = context;
-            this.mIntent = intent;
         }
+
 
         @Override
-        public Void call() throws Exception {
-            String type = NetState.isAvailable(mContext);
-            Log.d("NetState Changed: Connected. type = ", type);
-            onConnected(mContext, type);
-            return null;
+        public void run() {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    String type = NetState.isAvailable(mContext);
+                    Log.d("NetState Changed: Connected. type [", type, "]");
+                    onConnected(mContext, type);
+                    mScheduledFuture = null;
+                }
+            });
         }
-
     }
 
     @Override
@@ -53,14 +67,15 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
 
         //일단 예약된 작업이 있으면 취소.
         if(mScheduledFuture != null){
+            Log.w("Cancel pre-worker");
             mScheduledFuture.cancel(true);
             mScheduledFuture = null;
         }
 
-		/*
-		 * action이 왔을 때, disconnect 상태 일 경우에는 바로 session 정리 작업을 수행 해 줘야 한다.
-		 * connect상태에 대한 후처리는 불안정한 네트워크 환경일 때를 고려하여 일정 시간 후에 판단하도록 하자.
-		 */
+        /*
+         * action이 왔을 때, disconnect 상태 일 경우에는 바로 후처리 작업을 수행 해 줘야 한다.
+         * connect상태에 대한 후처리는 불안정한 네트워크 환경일 때를 고려하여 일정 시간 후에 판단하도록 하자.
+         */
         NetworkInfo networkInfo = (NetworkInfo)intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
         NetworkInfo.State netState = networkInfo.getState();
 
@@ -70,14 +85,15 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
         }
         else{
             if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
-                mScheduledFuture = mScheduledThreadPoolExecutor.schedule(new Worker(context, intent), NETSTATE_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+                Log.v("Scheduling worker");
+                mScheduledFuture = mScheduledThreadPoolExecutor.schedule(new Worker(context), NETSTATE_DELAY_MILLIS, TimeUnit.MILLISECONDS);
             }
         }
 
         Log.v("onReceive() - end");
     }
 
-    protected abstract void onConnected(Context context, String type);
+    protected void onConnected(Context context, String type){};
 
-    protected abstract void onDisconnected(Context context);
+    protected void onDisconnected(Context context){};
 }
