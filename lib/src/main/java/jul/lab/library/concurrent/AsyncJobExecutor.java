@@ -17,12 +17,17 @@ import jul.lab.library.log.Log;
 public class AsyncJobExecutor {
     private static final int THREAD_POOL_CORE_SIZE = 1;
     private static final int THREAD_POOL_MAX_SIZE = 1;
-    private static final long THREAD_POOL_ALIVE_TIME = 0;
+    private static final long THREAD_POOL_ALIVE_TIME = 1000;
 
-    private static ThreadPoolExecutor mThreadPoolExecutor = new ThreadPoolExecutor(
-            THREAD_POOL_CORE_SIZE, THREAD_POOL_MAX_SIZE,
-            THREAD_POOL_ALIVE_TIME, TimeUnit.MILLISECONDS,
-            new PriorityBlockingQueue<Runnable>());
+    private static ThreadPoolExecutor mThreadPoolExecutor = null;
+
+    static {
+        mThreadPoolExecutor = new ThreadPoolExecutor(
+                THREAD_POOL_CORE_SIZE, THREAD_POOL_MAX_SIZE,
+                THREAD_POOL_ALIVE_TIME, TimeUnit.MILLISECONDS,
+                new PriorityBlockingQueue<Runnable>());
+        mThreadPoolExecutor.prestartCoreThread();
+    }
 
     private static Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
@@ -32,20 +37,17 @@ public class AsyncJobExecutor {
 
     synchronized static void offer(final AsyncJob job) {
         if (job == null) {
-            Log.e("Job is null.");
             return;
         }
 
-        boolean offerResult = getQueue().offer(new Runnable() {
+        boolean offerResult = getQueue().offer(new ComparableRunnable(job) {
             @Override
             public void run() {
                 final Object result = job.run();
                 dispatchResult(job, result);
             }
         });
-
         if(!offerResult){
-            Log.e("Fail to offer.");
             job.offerFail();
         }
     }
