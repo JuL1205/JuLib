@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import jul.lib.test.activity.ConcurrentActivity;
 import jul.lib.test.activity.NetworkActivity;
 
 
@@ -38,7 +39,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position){
             case 0:
-                startActivity(new Intent(this, NetworkActivity.class));
+                NetworkActivity.invoke(this);
+                break;
+            case 1:
+                ConcurrentActivity.invoke(this);
                 break;
             default:
                 break;

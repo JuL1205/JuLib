@@ -1,6 +1,8 @@
 package jul.lib.test.activity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -15,10 +17,14 @@ import jul.lib.test.R;
 /**
  * Created by JuL on 2014-07-14.
  */
-public class NetworkActivity extends ActionBarActivity{
+public class NetworkActivity extends Activity{
 
-    private Context mContext;
     private TextView mTvMsg;
+
+    public static void invoke(Context context){
+        Intent i = new Intent(context, NetworkActivity.class);
+        context.startActivity(i);
+    }
 
     private NetStateChangeReceiver mNetStateChangeReceiver = new NetStateChangeReceiver() {
         @Override
@@ -37,8 +43,6 @@ public class NetworkActivity extends ActionBarActivity{
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_network);
-
-        mContext = this;
 
         initViews();
 

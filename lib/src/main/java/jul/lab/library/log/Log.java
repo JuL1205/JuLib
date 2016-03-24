@@ -16,7 +16,7 @@ public class Log {
     public static boolean LOG_WARNING = true;
     public static boolean LOG_ERROR = true;
 
-    protected static String TAG = "JuL"; // should be replaced with your tag
+    protected static String TAG = "test"; // should be replaced with your tag
     protected static boolean mEnabled = true;
 
     public static boolean isDebugMode() {

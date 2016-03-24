@@ -23,6 +23,8 @@
 
         <activity android:name=".activity.NetworkActivity"
             android:screenOrientation="portrait"/>
+        <activity android:name=".activity.ConcurrentActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>
