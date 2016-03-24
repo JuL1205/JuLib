@@ -8,4 +8,6 @@ local.properties
 /.idea/
 *.iml
 ./*.iml
+gradle*
 build
+gradlew.bat
