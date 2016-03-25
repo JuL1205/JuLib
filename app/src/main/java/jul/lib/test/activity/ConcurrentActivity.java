@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import jul.lab.library.concurrent.AsyncJob;
+import jul.lab.library.concurrent.JobChain;
 import jul.lab.library.log.Log;
 import jul.lib.test.R;
 
@@ -19,8 +20,9 @@ import jul.lib.test.R;
 public class ConcurrentActivity extends Activity {
 
     private Button mBtnTest;
+    private Button mBtnTest2;
 
-    private int TEST_THREAD_COUNT = 100;
+    private int TEST_THREAD_COUNT = 10;
 
     public static void invoke(Context context){
         Intent i = new Intent(context, ConcurrentActivity.class);
@@ -43,6 +45,8 @@ public class ConcurrentActivity extends Activity {
     private void initViews(){
         mBtnTest = (Button) findViewById(R.id.btn_test);
 
+        mBtnTest2 = (Button) findViewById(R.id.btn_test2);
+
         mBtnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,14 +56,16 @@ public class ConcurrentActivity extends Activity {
                     final AsyncJob job = new AsyncJob<Boolean>() {
                         @Override
                         protected Boolean run() throws InterruptedException {
-                            Thread.sleep(10000);
+                            mFinishCount++;
+                            Log.i("run : "+mFinishCount);
+                            Thread.sleep(1000);
                             return true;
                         }
 
                         @Override
                         protected void doneOnMainThread(Boolean result) {
-                            mFinishCount++;
-                            Log.i("doneOnMainThread : "+mFinishCount);
+//                            mFinishCount++;
+//                            Log.i("doneOnMainThread : "+mFinishCount);
                             if(mFinishCount == TEST_THREAD_COUNT){
                                 long duration = System.currentTimeMillis() - mStartTimeMs;
                                 Log.i("total duration = "+duration);
@@ -70,6 +76,48 @@ public class ConcurrentActivity extends Activity {
                     };
                     job.execute();
                 }
+            }
+        });
+
+
+        mBtnTest2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFinishCount = 0;
+                mStartTimeMs = System.currentTimeMillis();
+
+                AsyncJob job = new AsyncJob() {
+                    @Override
+                    protected Object run() throws InterruptedException {
+                        mFinishCount++;
+                        Log.i("run : "+mFinishCount);
+                        Thread.sleep(1000);
+                        return true;
+                    }
+
+                    @Override
+                    protected void doneOnMainThread(Object result) {
+                        if(mFinishCount == TEST_THREAD_COUNT){
+                            long duration = System.currentTimeMillis() - mStartTimeMs;
+                            Log.i("total duration = "+duration);
+                            Toast.makeText(ConcurrentActivity.this, "총 걸린 시간 : "+(duration/1000)+" sec.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                };
+
+                for(int i = 1 ; i < TEST_THREAD_COUNT ; i++){
+                    job.addChain(new JobChain<Boolean>() {
+                        @Override
+                        protected Boolean runChain(Object preResult) throws InterruptedException {
+                            mFinishCount++;
+                            Log.i("run chain : "+mFinishCount);
+                            Thread.sleep(1000);
+                            return false;
+                        }
+                    });
+                }
+
+                job.execute();
             }
         });
     }
