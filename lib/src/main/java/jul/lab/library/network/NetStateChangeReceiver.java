@@ -19,7 +19,7 @@ import jul.lab.library.log.Log;
 /**
  * Created by JuL on 2014-07-12.
  */
-public class NetStateChangeReceiver extends BroadcastReceiver{
+public abstract class NetStateChangeReceiver extends BroadcastReceiver{
     private ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
     private ScheduledFuture<?> mScheduledFuture = null;
 
@@ -93,7 +93,7 @@ public class NetStateChangeReceiver extends BroadcastReceiver{
         Log.v("onReceive() - end");
     }
 
-    protected void onConnected(Context context, String type){};
+    protected abstract void onConnected(Context context, String type);
 
-    protected void onDisconnected(Context context){};
+    protected abstract void onDisconnected(Context context);
 }
