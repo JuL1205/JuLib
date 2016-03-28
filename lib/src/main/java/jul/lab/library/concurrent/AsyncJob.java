@@ -1,5 +1,7 @@
 package jul.lab.library.concurrent;
 
+import android.media.MediaCodec;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -7,10 +9,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Created by JuL on 2014-07-12.
  *
- * 비동기 작업 클래스. 실제 작업소는 {@link AsyncJobExecutor} 이며, UI callback까지 래핑한다.
- * UI callback 시 param type은 generic으로 정의한다.
+ * Created by JuL on 2014-07-12.<br><br>
+ *
+ * 비동기 작업 클래스. 실제 작업소는 {@link AsyncJobExecutor} 이며, UI callback까지 래핑한다.<br>
+ * 각각의 AsyncJob은 서로 다른 thread에서 수행될 것이다.
  */
 public abstract class AsyncJob<Result> {
 
@@ -48,5 +51,5 @@ public abstract class AsyncJob<Result> {
      */
     protected abstract Result run() throws InterruptedException;
 
-    protected abstract void doneOnMainThread(Result result);
+    protected abstract void doneOnMainThread(Object finalResult);
 }

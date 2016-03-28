@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Messenger;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -57,13 +58,13 @@ public class ConcurrentActivity extends Activity {
                         @Override
                         protected Boolean run() throws InterruptedException {
                             mFinishCount++;
-                            Log.i("run : "+mFinishCount);
+                            Log.i("run : " + mFinishCount);
                             Thread.sleep(1000);
                             return true;
                         }
 
                         @Override
-                        protected void doneOnMainThread(Boolean result) {
+                        protected void doneOnMainThread(Object result) {
 //                            mFinishCount++;
 //                            Log.i("doneOnMainThread : "+mFinishCount);
                             if(mFinishCount == TEST_THREAD_COUNT){
@@ -86,9 +87,9 @@ public class ConcurrentActivity extends Activity {
                 mFinishCount = 0;
                 mStartTimeMs = System.currentTimeMillis();
 
-                AsyncJob job = new AsyncJob() {
+                AsyncJob job = new AsyncJob<Boolean>() {
                     @Override
-                    protected Object run() throws InterruptedException {
+                    protected Boolean run() throws InterruptedException {
                         mFinishCount++;
                         Log.i("run : "+mFinishCount);
                         Thread.sleep(1000);
@@ -110,7 +111,7 @@ public class ConcurrentActivity extends Activity {
                         @Override
                         protected Boolean runChain(Object preResult) throws InterruptedException {
                             mFinishCount++;
-                            Log.i("run chain : "+mFinishCount);
+                            Log.i("run chain : " + mFinishCount);
                             Thread.sleep(1000);
                             return false;
                         }

@@ -19,7 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import jul.lab.library.log.Log;
 
 /**
- * Created by JuL on 2014-07-12.
+ * Created by JuL on 2014-07-12.<br><br>
+ *
+ * 작업이 수행될 thread를 관리하는 class.<br>
+ * thread 관리정책은 {@link Executors#newCachedThreadPool()} 을 따른다.<br><br>
+ *
+ * 기본적으로 작업은 {@link AsyncJob}(main job)과 {@link JobChain}(chain job)으로 나눠지고,
+ * 각각의 main job은 서로 다른 thread에서, main job과 chain job은 같은 thread에서 수행될 것이다.
  */
 public class AsyncJobExecutor {
     private static ExecutorService mThreadPoolExecutor = null;
