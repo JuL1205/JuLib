@@ -18,8 +18,8 @@ package jul.lab.library.concurrent;
  * protected void doneOnMainThread(Object finalResult) {
  *      //chain job까지 모두 완료 되었을때 호출된다.
  *
- *      ClassB b = (ClassB) preResult;
- * };
+ *      ClassB b = (ClassB) finalResult;
+ * }};
  *
  * job.addChain(new JobChain<Integer>() {
  * protected Integer runChain(Object preResult) throws InterruptedException {
