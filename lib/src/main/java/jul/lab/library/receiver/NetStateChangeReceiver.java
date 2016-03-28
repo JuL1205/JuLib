@@ -1,4 +1,4 @@
-package jul.lab.library.network;
+package jul.lab.library.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,7 +9,6 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +46,7 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-                    String type = NetState.isAvailable(mContext);
+                    String type = isAvailable(mContext);
                     Log.d("NetState Changed: Connected. type [", type, "]");
                     onConnected(mContext, type);
                     mScheduledFuture = null;
@@ -91,6 +90,22 @@ public abstract class NetStateChangeReceiver extends BroadcastReceiver{
         }
 
         Log.v("onReceive() - end");
+    }
+
+    private String isAvailable(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo[] infos = cm.getAllNetworkInfo();
+        for (NetworkInfo info : infos) {
+            if (info != null) {
+                boolean isConnected = info.isConnectedOrConnecting();
+                boolean isAvailable = info.isAvailable();
+
+                if (isConnected && isAvailable) {
+                    return info.getTypeName();
+                }
+            }
+        }
+        return null;
     }
 
     protected abstract void onConnected(Context context, String type);

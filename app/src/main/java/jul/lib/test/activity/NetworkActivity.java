@@ -6,12 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import jul.lab.library.log.Log;
-import jul.lab.library.network.NetStateChangeReceiver;
+import jul.lab.library.receiver.NetStateChangeReceiver;
 import jul.lib.test.R;
 
 /**
