@@ -4,5 +4,6 @@
     <string-array name="main_menu">
         <item>@string/menu_network</item>
         <item>@string/menu_concurrent</item>
+        <item>@string/menu_camcoder</item>
     </string-array>
 </resources>

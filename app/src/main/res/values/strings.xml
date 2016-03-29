@@ -6,4 +6,5 @@
 
     <string name="menu_network">Network</string>
     <string name="menu_concurrent">Concurrent</string>
+    <string name="menu_camcoder">Camcoder</string>
 </resources>

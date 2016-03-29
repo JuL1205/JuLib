@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "jul.lib.test"
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"

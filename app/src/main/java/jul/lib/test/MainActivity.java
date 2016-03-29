@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import jul.lib.test.activity.CamcoderActivity;
 import jul.lib.test.activity.ConcurrentActivity;
 import jul.lib.test.activity.NetworkActivity;
 
@@ -30,7 +31,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private void initViews(){
         mLvMenu = (ListView) findViewById(R.id.lv_menu);
 
-        mLvMenu.setAdapter(new ArrayAdapter<String>(mContext, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.main_menu)));
+        mLvMenu.setAdapter(new ArrayAdapter<>(mContext, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.main_menu)));
         mLvMenu.setOnItemClickListener(this);
     }
 
@@ -43,6 +44,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 break;
             case 1:
                 ConcurrentActivity.invoke(this);
+                break;
+            case 2:
+                CamcoderActivity.invoke(this);
                 break;
             default:
                 break;
