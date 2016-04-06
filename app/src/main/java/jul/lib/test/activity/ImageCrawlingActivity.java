@@ -20,14 +20,16 @@ import jul.lib.test.adapter.ImageCrawlingAdapter;
  * Created by owner on 2016. 4. 5..
  */
 public class ImageCrawlingActivity extends Activity {
-
-    public static final String DOMAIN = "http://www.gettyimagesgallery.com";
-
     private RecyclerView mRecyclerView;
     private ImageCrawlingAdapter mAdapter;
 
-    public static void invoke(Context context){
+    private static final String EXTRA_DOMAIN = "extra_domain";
+    private static final String EXTRA_PAGE = "extra_page";
+
+    public static void invoke(Context context, String domain, String page){
         Intent i = new Intent(context, ImageCrawlingActivity.class);
+        i.putExtra(EXTRA_DOMAIN, domain);
+        i.putExtra(EXTRA_PAGE, page);
         context.startActivity(i);
     }
 
@@ -39,7 +41,7 @@ public class ImageCrawlingActivity extends Activity {
         initViews();
 
         ImageUrlList urlList = new ImageUrlList();
-        new HTMLImageParser(DOMAIN, "/default.aspx", urlList, new ParsedPageList()).execute();
+        new HTMLImageParser(this, getIntent().getStringExtra(EXTRA_DOMAIN), getIntent().getStringExtra(EXTRA_PAGE), urlList, new ParsedPageList()).execute();
 
         mAdapter = new ImageCrawlingAdapter(getWindowManager().getDefaultDisplay().getWidth(), urlList);
         mRecyclerView.setAdapter(mAdapter);

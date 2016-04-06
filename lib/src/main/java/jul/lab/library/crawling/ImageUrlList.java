@@ -6,6 +6,8 @@ import android.os.Looper;
 import java.util.ArrayList;
 import java.util.List;
 
+import jul.lab.library.log.Log;
+
 public class ImageUrlList extends ArrayList<String> {
 
     private OnDataChangeListener mOnDataChangeListener;

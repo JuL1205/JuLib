@@ -1,11 +1,15 @@
 package jul.lib.test;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import jul.lib.test.activity.CamcoderActivity;
@@ -49,7 +53,18 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 CamcoderActivity.invoke(this);
                 break;
             case 3:
-                ImageCrawlingActivity.invoke(this);
+                View v = LayoutInflater.from(this).inflate(R.layout.layout_domain_dlg, null);
+                final EditText etDomain = (EditText) v.findViewById(R.id.et_domain);
+                final EditText etPage = (EditText) v.findViewById(R.id.et_page);
+                new AlertDialog.Builder(this).setView(v)
+                        .setPositiveButton("GO!", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ImageCrawlingActivity.invoke(MainActivity.this, etDomain.getText().toString(), etPage.getText().toString());
+                            }
+                        })
+                        .show();
+
                 break;
             default:
                 break;

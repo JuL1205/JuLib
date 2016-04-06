@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">JuLibDemo</string>
     <string name="action_settings">Settings</string>
 
     <string name="menu_network">Network</string>
     <string name="menu_concurrent">Concurrent</string>
     <string name="menu_camcoder">Camcoder</string>
-    <string name="menu_image">Image Download</string>
+    <string name="menu_image">Image Crawling</string>
 </resources>

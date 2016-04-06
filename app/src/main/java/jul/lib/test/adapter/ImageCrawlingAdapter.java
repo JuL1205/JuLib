@@ -59,7 +59,7 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
     public void onBindViewHolder(ImageCrawlingAdapter.ViewHolder viewHolder, int i) {
 //        viewHolder.mIvThumb.setImageDrawable(new ColorDrawable(0xffff0000));
         Picasso.with(viewHolder.mIvThumb.getContext())
-                .load(ImageCrawlingActivity.DOMAIN+mImageUrlList.get(i))
+                .load(mImageUrlList.get(i))
                 .resize(mAspectSize, mAspectSize)
                 .placeholder(new ColorDrawable(0xffa3a3a3))
                 .error(new ColorDrawable(0xffff0000))
@@ -69,6 +69,7 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
 
     @Override
     public int getItemCount() {
+//        Log.i("size = "+mImageUrlList.size());
         return mImageUrlList.size();
     }
 }

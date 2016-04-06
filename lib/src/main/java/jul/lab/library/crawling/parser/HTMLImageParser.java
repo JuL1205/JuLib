@@ -1,5 +1,7 @@
 package jul.lab.library.crawling.parser;
 
+import android.app.Activity;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,6 +15,7 @@ import java.util.regex.Pattern;
 import jul.lab.library.concurrent.AsyncJob;
 import jul.lab.library.crawling.ImageUrlList;
 import jul.lab.library.crawling.ParsedPageList;
+import jul.lab.library.log.Log;
 
 /**
  * 전달받은 page의 모든 하위 page의 이미지까지 크롤링한다.
@@ -34,7 +37,9 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
     private ParsedPageList mParsedPageList;
 
     public String mDomain;
-    public HTMLImageParser(String domain, String page, ImageUrlList target, ParsedPageList parsedPageList){
+    public Activity mActivity;
+    public HTMLImageParser(Activity activity, String domain, String page, ImageUrlList target, ParsedPageList parsedPageList){
+        mActivity = activity;
         mDomain = domain;
         mPage = page;
         mImageUrlList = target;
@@ -43,10 +48,13 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
 
     @Override
     protected List<String> run() throws InterruptedException {
-        List<String> imgUrlList = new ArrayList<>();
+        if(mActivity == null || mActivity.isFinishing()){
+            return null;
+        }
 
+        List<String> imgUrlList = new ArrayList<>();
         try {
-            URL obj = new URL(mDomain+mPage);
+            URL obj = new URL(mPage.startsWith("/")?(mDomain+mPage):mPage);
             HttpURLConnection conn = (HttpURLConnection) obj.openConnection();
             conn.setConnectTimeout(3 * 1000);
             conn.setReadTimeout(3 * 1000);
@@ -64,18 +72,16 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
                     if(srcMatcher.find()){
                         String find = srcMatcher.group();
                         String url = find.replace("src","").replace(" ","").replace("=","").replace("\"", "");
-                        imgUrlList.add(url);
-//                        mImageUrlList.atomicAdd(url);
+                        if(url.startsWith(mDomain)){
+                            imgUrlList.add("http://"+url);
+                        } else if(url.startsWith("http://")){
+                            imgUrlList.add(url);
+                        } else if(url.startsWith("/")){
+                            imgUrlList.add(mDomain+url);
+                        } else{ //".."같이 시작하는것들
+                            imgUrlList.add(mDomain+mPage+"/"+url);
+                        }
                     }
-//                    int count = tagMatcher.groupCount();
-//                    for(int i = 0 ; i < count ; i++){
-//                        Matcher srcMatcher = mImageSrcPattern.matcher(tagMatcher.group(i));
-//                        if(srcMatcher.find()){
-//                            String find = srcMatcher.group();
-//                            String url = find.replace("src","").replace(" ","").replace("=","").replace("\"", "");
-//                            mImagePathList.atomicAdd(url);
-//                        }
-//                    }
                 }
 
 
@@ -83,9 +89,11 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
                 Matcher linkMatcher = mLinkPattern.matcher(line);
                 if(linkMatcher.find()){
                     String linkPage = linkMatcher.group().replace("href","").replace(" ","").replace("=","").replace("\"","");
-                    if(linkPage.startsWith("/") && !linkPage.contains("?")){
+                    //모든 페이지를 다 탐색하면 너무 많다. 일단 domain과 직접연관된 페이지만 탐색하자.
+                    if((linkPage.startsWith("/") || linkPage.startsWith("http://"+mDomain) || linkPage.startsWith(mDomain))
+                            && !linkPage.contains("?") && !linkPage.endsWith("css")){
                         if(!mParsedPageList.wasParsed(linkPage)){   //아직 파싱작업을 안한 페이지라면 새작업 시작.
-                            new HTMLImageParser(mDomain, linkPage, mImageUrlList, mParsedPageList).execute();
+                            new HTMLImageParser(mActivity, mDomain, linkPage, mImageUrlList, mParsedPageList).execute();
                             mParsedPageList.atomicAdd(linkPage);
                         }
                     }
@@ -93,8 +101,6 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
             }
             br.close();
 
-//            Log.w("mImagePathList size = " + mImageUrlList.size());
-//            Log.w("mParsedPageList size = "+mParsedPageList.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -105,6 +111,8 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
 
     @Override
     protected void doneOnMainThread(Object finalResult) {
-        mImageUrlList.atomicAdd((List<String>) finalResult);
+        if(finalResult != null){
+            mImageUrlList.atomicAdd((List<String>) finalResult);
+        }
     }
 }
