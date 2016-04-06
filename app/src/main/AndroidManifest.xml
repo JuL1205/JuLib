@@ -33,7 +33,7 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".activity.CamcoderActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".activity.ImageDownloadActivity"
+        <activity android:name=".activity.ImageCrawlingActivity"
             android:screenOrientation="portrait"/>
     </application>
 

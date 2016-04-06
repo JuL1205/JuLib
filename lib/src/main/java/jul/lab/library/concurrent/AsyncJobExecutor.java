@@ -31,7 +31,7 @@ public class AsyncJobExecutor {
     private static ExecutorService mThreadPoolExecutor = null;
 
     static {
-        mThreadPoolExecutor = Executors.newCachedThreadPool();
+        mThreadPoolExecutor = Executors.newFixedThreadPool(10);
     }
 
     private static Handler mMainThreadHandler = new Handler(Looper.getMainLooper());

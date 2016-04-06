@@ -1,7 +1,6 @@
 package jul.lib.test;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,11 +8,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.util.concurrent.Future;
-
 import jul.lib.test.activity.CamcoderActivity;
 import jul.lib.test.activity.ConcurrentActivity;
-import jul.lib.test.activity.ImageDownloadActivity;
+import jul.lib.test.activity.ImageCrawlingActivity;
 import jul.lib.test.activity.NetworkActivity;
 
 
@@ -52,7 +49,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 CamcoderActivity.invoke(this);
                 break;
             case 3:
-                ImageDownloadActivity.invoke(this);
+                ImageCrawlingActivity.invoke(this);
                 break;
             default:
                 break;

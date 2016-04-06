@@ -1,23 +1,23 @@
-package jul.lib.test.crawling.parser;
+package jul.lab.library.crawling.parser;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jul.lab.library.concurrent.AsyncJob;
-import jul.lab.library.log.Log;
-import jul.lib.test.crawling.ImagePathList;
-import jul.lib.test.crawling.ParsedPageList;
+import jul.lab.library.crawling.ImageUrlList;
+import jul.lab.library.crawling.ParsedPageList;
 
 /**
  * 전달받은 page의 모든 하위 page의 이미지까지 크롤링한다.
- * Created by owner on 2016. 4. 5..
  */
-public class HTMLImageParser extends AsyncJob {
+public class HTMLImageParser extends AsyncJob<List<String>> {
     public static String PATTERN = "<img(.*)src\\s{0,}=\\s{0,}\"[^\\s]*\"";
     public static Pattern mImageTagPattern = Pattern.compile(PATTERN);
 
@@ -28,25 +28,28 @@ public class HTMLImageParser extends AsyncJob {
     public static String PATTERN3 = "href\\s{0,}=\\s{0,}\"[^\\s]*\"";
     public static Pattern mLinkPattern = Pattern.compile(PATTERN3);
 
-    protected final String DOMAIN = "http://www.gettyimagesgallery.com";
-
     private String mPage;
 
-    private ImagePathList mImagePathList;
+    private ImageUrlList mImageUrlList;
     private ParsedPageList mParsedPageList;
-    public HTMLImageParser(String page, ImagePathList target, ParsedPageList parsedPageList){
+
+    public String mDomain;
+    public HTMLImageParser(String domain, String page, ImageUrlList target, ParsedPageList parsedPageList){
+        mDomain = domain;
         mPage = page;
-        mImagePathList = target;
+        mImageUrlList = target;
         mParsedPageList = parsedPageList;
     }
 
     @Override
-    protected Object run() throws InterruptedException {
+    protected List<String> run() throws InterruptedException {
+        List<String> imgUrlList = new ArrayList<>();
+
         try {
-            URL obj = new URL(DOMAIN+mPage);
+            URL obj = new URL(mDomain+mPage);
             HttpURLConnection conn = (HttpURLConnection) obj.openConnection();
-            conn.setConnectTimeout(10 * 1000);
-            conn.setReadTimeout(10 * 1000);
+            conn.setConnectTimeout(3 * 1000);
+            conn.setReadTimeout(3 * 1000);
 
             InputStream is = conn.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -61,7 +64,8 @@ public class HTMLImageParser extends AsyncJob {
                     if(srcMatcher.find()){
                         String find = srcMatcher.group();
                         String url = find.replace("src","").replace(" ","").replace("=","").replace("\"", "");
-                        mImagePathList.atomicAdd(url);
+                        imgUrlList.add(url);
+//                        mImageUrlList.atomicAdd(url);
                     }
 //                    int count = tagMatcher.groupCount();
 //                    for(int i = 0 ; i < count ; i++){
@@ -79,9 +83,9 @@ public class HTMLImageParser extends AsyncJob {
                 Matcher linkMatcher = mLinkPattern.matcher(line);
                 if(linkMatcher.find()){
                     String linkPage = linkMatcher.group().replace("href","").replace(" ","").replace("=","").replace("\"","");
-                    if(linkPage.startsWith("/")){
+                    if(linkPage.startsWith("/") && !linkPage.contains("?")){
                         if(!mParsedPageList.wasParsed(linkPage)){   //아직 파싱작업을 안한 페이지라면 새작업 시작.
-                            new HTMLImageParser(linkPage, mImagePathList, mParsedPageList).execute();
+                            new HTMLImageParser(mDomain, linkPage, mImageUrlList, mParsedPageList).execute();
                             mParsedPageList.atomicAdd(linkPage);
                         }
                     }
@@ -89,17 +93,18 @@ public class HTMLImageParser extends AsyncJob {
             }
             br.close();
 
-            Log.w("mImagePathList size = " + mImagePathList.size());
-            Log.w("mParsedPageList size = "+mParsedPageList.size());
+//            Log.w("mImagePathList size = " + mImageUrlList.size());
+//            Log.w("mParsedPageList size = "+mParsedPageList.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        return null;
+        return imgUrlList;
     }
 
     @Override
     protected void doneOnMainThread(Object finalResult) {
+        mImageUrlList.atomicAdd((List<String>) finalResult);
     }
 }

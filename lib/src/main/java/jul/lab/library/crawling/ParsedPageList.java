@@ -1,10 +1,7 @@
-package jul.lib.test.crawling;
+package jul.lab.library.crawling;
 
 import java.util.ArrayList;
 
-/**
- * Created by owner on 2016. 4. 6..
- */
 public class ParsedPageList extends ArrayList<String> {
     public boolean wasParsed(String page){
         synchronized (this){
