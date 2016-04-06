@@ -148,7 +148,9 @@ public class CamcoderPreview extends SurfaceView implements
         }
     }
 
-    private void release(){
+    public void release(){
+        stopPreview();
+
         mCamera.release();
         mCamera = null;
     }

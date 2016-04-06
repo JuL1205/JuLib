@@ -9,8 +9,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.util.concurrent.Future;
+
 import jul.lib.test.activity.CamcoderActivity;
 import jul.lib.test.activity.ConcurrentActivity;
+import jul.lib.test.activity.ImageDownloadActivity;
 import jul.lib.test.activity.NetworkActivity;
 
 
@@ -47,6 +50,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 break;
             case 2:
                 CamcoderActivity.invoke(this);
+                break;
+            case 3:
+                ImageDownloadActivity.invoke(this);
                 break;
             default:
                 break;
