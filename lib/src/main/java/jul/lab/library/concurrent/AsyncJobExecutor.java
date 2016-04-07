@@ -37,7 +37,7 @@ public class AsyncJobExecutor {
     private static Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
     synchronized static void execute(final AsyncJob job) {
-        if (job == null) {
+        if (job == null || job.bIsCancel) {
             return;
         }
 

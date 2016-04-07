@@ -1,6 +1,7 @@
 package jul.lib.test.adapter;
 
 import android.graphics.drawable.ColorDrawable;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,13 +21,20 @@ import jul.lib.test.activity.ImageCrawlingActivity;
  */
 public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdapter.ViewHolder> implements ImageUrlList.OnDataChangeListener {
 
+    public interface OnThumbClickListener{
+        void onClick(ViewHolder holder, String url);
+    }
+
     private ImageUrlList mImageUrlList;
     private int mAspectSize;
+    private OnThumbClickListener mOnThumbClickListener;
 
-    public ImageCrawlingAdapter(int screenWidth, ImageUrlList urlList){
+
+    public ImageCrawlingAdapter(int screenWidth, ImageUrlList urlList, OnThumbClickListener listener){
         mImageUrlList = urlList;
         mAspectSize = screenWidth / 4;
         mImageUrlList.setOnDataChangeListener(this);
+        mOnThumbClickListener = listener;
     }
 
     @Override
@@ -36,7 +44,7 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
         notifyDataSetChanged();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder{
 
         public ImageView mIvThumb;
 
@@ -56,20 +64,28 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
     }
 
     @Override
-    public void onBindViewHolder(ImageCrawlingAdapter.ViewHolder viewHolder, int i) {
-//        viewHolder.mIvThumb.setImageDrawable(new ColorDrawable(0xffff0000));
+    public void onBindViewHolder(final ImageCrawlingAdapter.ViewHolder viewHolder, final int position) {
         Picasso.with(viewHolder.mIvThumb.getContext())
-                .load(mImageUrlList.get(i))
+                .load(mImageUrlList.get(position))
                 .resize(mAspectSize, mAspectSize)
                 .placeholder(new ColorDrawable(0xffa3a3a3))
                 .error(new ColorDrawable(0xffff0000))
                 .centerCrop()
                 .into(viewHolder.mIvThumb);
+
+        ViewCompat.setTransitionName(viewHolder.mIvThumb, String.valueOf(position) + "_image");
+
+        viewHolder.mIvThumb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnThumbClickListener.onClick(viewHolder, mImageUrlList.get(position));
+//                Log.i("url = " + mImageUrlList.get(i));
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-//        Log.i("size = "+mImageUrlList.size());
         return mImageUrlList.size();
     }
 }

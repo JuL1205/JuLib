@@ -48,13 +48,14 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
 
     @Override
     protected List<String> run() throws InterruptedException {
-        if(mActivity == null || mActivity.isFinishing()){
+        if(mActivity == null || mActivity.isFinishing()){   //액티비티 종료 시 작업할 필요 없음
+            cancel();
             return null;
         }
 
         List<String> imgUrlList = new ArrayList<>();
         try {
-            URL obj = new URL(mPage.startsWith("/")?(mDomain+mPage):mPage);
+            URL obj = new URL((mPage.startsWith("/") || mPage.length() == 0)?(mDomain+mPage):mPage);
             HttpURLConnection conn = (HttpURLConnection) obj.openConnection();
             conn.setConnectTimeout(3 * 1000);
             conn.setReadTimeout(3 * 1000);
@@ -78,8 +79,10 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
                             imgUrlList.add(url);
                         } else if(url.startsWith("/")){
                             imgUrlList.add(mDomain+url);
-                        } else{ //".."같이 시작하는것들
-                            imgUrlList.add(mDomain+mPage+"/"+url);
+                        } else if(url.startsWith("..")){
+                            imgUrlList.add(mDomain+"/"+url.replace(".",""));
+                        } else{
+                            imgUrlList.add(mDomain+"/"+url);
                         }
                     }
                 }

@@ -2,10 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="1dp">
     <ImageView
         android:id="@+id/iv_thumb"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="#ff0000"/>
+        android:clickable="true"
+        android:src="#ff0000"
+        tools:ignore="ContentDescription" />
 </RelativeLayout>

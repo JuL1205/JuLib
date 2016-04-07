@@ -34,6 +34,7 @@
         <activity android:name=".activity.CamcoderActivity"
             android:screenOrientation="portrait"/>
         <activity android:name=".activity.ImageCrawlingActivity"
+            android:label="ImageCrawling"
             android:screenOrientation="portrait"/>
     </application>
 
