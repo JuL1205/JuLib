@@ -11,6 +11,9 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+
 import jul.lab.library.log.Log;
 import jul.lib.test.R;
 
@@ -19,7 +22,6 @@ public class ImageShowFragment extends Fragment {
     public static ImageShowFragment newInstance(String url){
         Bundle args = new Bundle();
         args.putString("url", url);
-
         ImageShowFragment fragment = new ImageShowFragment();
         fragment.setArguments(args);
 
@@ -41,7 +43,7 @@ public class ImageShowFragment extends Fragment {
         Picasso.with(ivImg.getContext())
                 .load(getArguments().getString("url"))
                 .placeholder(new ColorDrawable(0xffa3a3a3))
-                .resize(getActivity().getWindowManager().getDefaultDisplay().getWidth(), getActivity().getWindowManager().getDefaultDisplay().getWidth())
+//                .resize(getActivity().getWindowManager().getDefaultDisplay().getWidth(), getActivity().getWindowManager().getDefaultDisplay().getWidth())
                 .error(new ColorDrawable(0xffff0000))
                 .into(ivImg);
     }

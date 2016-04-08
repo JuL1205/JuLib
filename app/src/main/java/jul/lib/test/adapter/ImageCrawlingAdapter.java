@@ -19,7 +19,7 @@ import jul.lib.test.activity.ImageCrawlingActivity;
 /**
  * Created by owner on 2016. 4. 6..
  */
-public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdapter.ViewHolder> implements ImageUrlList.OnDataChangeListener {
+public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdapter.ViewHolder> {
 
     public interface OnThumbClickListener{
         void onClick(ViewHolder holder, String url);
@@ -33,15 +33,7 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
     public ImageCrawlingAdapter(int screenWidth, ImageUrlList urlList, OnThumbClickListener listener){
         mImageUrlList = urlList;
         mAspectSize = screenWidth / 4;
-        mImageUrlList.setOnDataChangeListener(this);
         mOnThumbClickListener = listener;
-    }
-
-    @Override
-    public void onAdd(int addCount) {
-//        notifyItemRangeInserted(mImageUrlList.size()-addCount, addCount);
-//        notifyItemInserted(mImageUrlList.size() - 1);
-        notifyDataSetChanged();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{

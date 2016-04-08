@@ -9,6 +9,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,15 +37,17 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
 
     private ImageUrlList mImageUrlList;
     private ParsedPageList mParsedPageList;
+    private ReentrantLock mReentrantLock;
 
     public String mDomain;
     public Activity mActivity;
-    public HTMLImageParser(Activity activity, String domain, String page, ImageUrlList target, ParsedPageList parsedPageList){
+    public HTMLImageParser(Activity activity, String domain, String page, ImageUrlList target, ParsedPageList parsedPageList, ReentrantLock lock){
         mActivity = activity;
         mDomain = domain;
         mPage = page;
         mImageUrlList = target;
         mParsedPageList = parsedPageList;
+        mReentrantLock = lock;
     }
 
     @Override
@@ -51,6 +55,10 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
         if(mActivity == null || mActivity.isFinishing()){   //액티비티 종료 시 작업할 필요 없음
             cancel();
             return null;
+        }
+
+        if(mReentrantLock.isLocked()){  //lock이 걸렸을 경우 화면에 더이상 뿌려줄게 없다는 의미. 작업을 천천히해도 된다.
+            Thread.sleep(1000);
         }
 
         List<String> imgUrlList = new ArrayList<>();
@@ -63,7 +71,6 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
             InputStream is = conn.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String line;
-//            StringBuffer response = new StringBuffer();
             while((line = br.readLine()) != null) {
 
                 //img 탐색
@@ -80,7 +87,7 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
                         } else if(url.startsWith("/")){
                             imgUrlList.add(mDomain+url);
                         } else if(url.startsWith("..")){
-                            imgUrlList.add(mDomain+"/"+url.replace(".",""));
+                            imgUrlList.add(mDomain+"/"+url.replace("..",""));
                         } else{
                             imgUrlList.add(mDomain+"/"+url);
                         }
@@ -96,7 +103,7 @@ public class HTMLImageParser extends AsyncJob<List<String>> {
                     if((linkPage.startsWith("/") || linkPage.startsWith("http://"+mDomain) || linkPage.startsWith(mDomain))
                             && !linkPage.contains("?") && !linkPage.endsWith("css")){
                         if(!mParsedPageList.wasParsed(linkPage)){   //아직 파싱작업을 안한 페이지라면 새작업 시작.
-                            new HTMLImageParser(mActivity, mDomain, linkPage, mImageUrlList, mParsedPageList).execute();
+                            new HTMLImageParser(mActivity, mDomain, linkPage, mImageUrlList, mParsedPageList, mReentrantLock).execute();
                             mParsedPageList.atomicAdd(linkPage);
                         }
                     }

@@ -11,6 +11,9 @@ import android.transition.Fade;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 import jul.lab.library.crawling.ImageUrlList;
 import jul.lab.library.crawling.ParsedPageList;
@@ -18,21 +21,41 @@ import jul.lab.library.crawling.parser.HTMLImageParser;
 import jul.lab.library.log.Log;
 import jul.lab.library.transition.DynamicChangeTransition;
 import jul.lib.test.R;
+import jul.lib.test.activity.ImageCrawlingActivity;
 import jul.lib.test.adapter.ImageCrawlingAdapter;
 
-/**
- * Created by owner on 2016. 4. 7..
- */
-public class GridFragment extends Fragment implements ImageCrawlingAdapter.OnThumbClickListener{
+public class GridFragment extends Fragment implements ImageCrawlingAdapter.OnThumbClickListener, ImageUrlList.OnDataChangeListener{
 
-    public GridFragment(String domain, String page, ImageUrlList list){
+    private RecyclerView mRecyvlerView;
+    private ImageCrawlingAdapter mImageCrawlingAdapter;
+    private GridLayoutManager mGridLayoutManager;
+    private ReentrantLock mReentrantLock;
+    private ProgressBar mPbLoading;
+
+    @Override
+    public void onAdd(int addCount) {
+        mImageCrawlingAdapter.notifyDataSetChanged();
+        mPbLoading.setVisibility(View.GONE);
+
+        ((ImageCrawlingActivity)getActivity()).setCount(mImageCrawlingAdapter.getItemCount());
+
+//        int lastVisibleIndex = mGridLayoutManager.findLastVisibleItemPosition();
+//        int totalCount = mImageCrawlingAdapter.getItemCount();
+//        if(totalCount - 1 > lastVisibleIndex){
+//            if(!mReentrantLock.isLocked()){
+//                mReentrantLock.lock();
+//            }
+//        }
+    }
+
+    public GridFragment(String domain, String page, ImageUrlList list, ReentrantLock lock){
         Bundle b = new Bundle();
         b.putString("domain", domain);
         b.putString("page", page);
         b.putSerializable("list", list);
+        b.putSerializable("lock", lock);
         setArguments(b);
     }
-
 
     @Nullable
     @Override
@@ -44,18 +67,44 @@ public class GridFragment extends Fragment implements ImageCrawlingAdapter.OnThu
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 4));
-//        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
+
+
+        mRecyvlerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+        mGridLayoutManager = new GridLayoutManager(getContext(), 4);
+        mRecyvlerView.setLayoutManager(mGridLayoutManager);
+        mRecyvlerView.setItemAnimator(new DefaultItemAnimator());
+//        mRecyvlerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                int lastVisibleIndex = mGridLayoutManager.findLastVisibleItemPosition();
+//                int totalCount = mImageCrawlingAdapter.getItemCount();
+//                if (lastVisibleIndex == totalCount - 1) {
+//                    synchronized (mReentrantLock) {
+//                        if (mReentrantLock.isLocked()) {
+//                            mReentrantLock.unlock();
+//                        }
+//                    }
+//                }
+//            }
+//        });
 
         ImageUrlList urlList = (ImageUrlList) getArguments().getSerializable("list");
+        urlList.setOnDataChangeListener(this);
 
-        recyclerView.setAdapter(new ImageCrawlingAdapter(getActivity().getWindowManager().getDefaultDisplay().getWidth(), urlList, this));
-        new HTMLImageParser(getActivity(), getArguments().getString("domain"), getArguments().getString("page"), urlList, new ParsedPageList()).execute();
+        if(urlList.size() > 0){
+            mPbLoading.setVisibility(View.GONE);
+        }
+
+        mImageCrawlingAdapter = new ImageCrawlingAdapter(getActivity().getWindowManager().getDefaultDisplay().getWidth(), urlList, this);
+        mRecyvlerView.setAdapter(mImageCrawlingAdapter);
+        mReentrantLock = (ReentrantLock) getArguments().getSerializable("lock");
+        new HTMLImageParser(getActivity(), getArguments().getString("domain"), getArguments().getString("page"), urlList, new ParsedPageList(), mReentrantLock).execute();
     }
 
     @Override
     public void onClick(ImageCrawlingAdapter.ViewHolder holder, String url) {
+        Log.i(url);
         ImageShowFragment showFragment = ImageShowFragment.newInstance(url);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

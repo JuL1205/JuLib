@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             case 3:
                 View v = LayoutInflater.from(this).inflate(R.layout.layout_domain_dlg, null);
                 final EditText etDomain = (EditText) v.findViewById(R.id.et_domain);
-//                etDomain.setText("http://www.google.com");
+//                etDomain.setText("http://www.kakaocorp.com");
                 final EditText etPage = (EditText) v.findViewById(R.id.et_page);
 //                etPage.setText("");
                 new AlertDialog.Builder(this).setView(v)
