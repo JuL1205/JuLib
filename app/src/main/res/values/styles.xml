@@ -1,8 +1,12 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">#2196F3</item>
+    <style name="MyAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">#1565C0</item>
     </style>
 
+    <style name="ActionToolbar" parent="Widget.Design.CollapsingToolbar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/white</item>
+    </style>
 </resources>

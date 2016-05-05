@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -13,15 +15,19 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import jul.lib.test.activity.CamcoderActivity;
+import jul.lib.test.activity.CollapsingToolbarActivity;
 import jul.lib.test.activity.ConcurrentActivity;
 import jul.lib.test.activity.ImageCrawlingActivity;
+import jul.lib.test.activity.MaterialTransitionActivity;
 import jul.lib.test.activity.NetworkActivity;
 
 
-public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
     private ListView mLvMenu;
     private Context mContext;
+
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +36,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         mContext = this;
 
         initViews();
+
     }
 
     private void initViews(){
@@ -37,6 +44,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         mLvMenu.setAdapter(new ArrayAdapter<>(mContext, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.main_menu)));
         mLvMenu.setOnItemClickListener(this);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
     }
 
 
@@ -67,6 +77,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                         })
                         .show();
 
+                break;
+            case 4:
+                MaterialTransitionActivity.invoke(this);
                 break;
             default:
                 break;

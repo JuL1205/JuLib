@@ -24,6 +24,10 @@ public class ImageCrawlingAdapter extends RecyclerView.Adapter<ImageCrawlingAdap
     public interface OnThumbClickListener{
         void onClick(ViewHolder holder, String url);
     }
+    public interface OnThumbClickListener2{
+        void onClick(ViewHolder holder, String url);
+    }
+
 
     private ImageUrlList mImageUrlList;
     private int mAspectSize;
