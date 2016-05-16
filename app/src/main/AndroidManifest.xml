@@ -38,7 +38,8 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".activity.MaterialTransitionActivity"
             android:label="MaterialTransition"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:theme="@style/MyAppThemeTransStatus"/>
         <activity android:name=".activity.CollapsingToolbarActivity"
             android:label="CollapsingToolbar"
             android:screenOrientation="portrait"/>

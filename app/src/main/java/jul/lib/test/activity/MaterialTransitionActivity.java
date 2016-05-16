@@ -4,10 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
 import java.util.List;
 
@@ -27,6 +31,9 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
 
     private MaterialTransitionBehavior.Presenter mPresenter;
 
+    private Toolbar mToolbar;
+    private DrawerLayout mDrawerLayout;
+
     public static void invoke(Context context){
         Intent i = new Intent(context, MaterialTransitionActivity.class);
         context.startActivity(i);
@@ -42,7 +49,11 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
 
         initViews();
 
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         mPresenter.initSampleImageList();
+
     }
 
     private void initViews(){
@@ -52,6 +63,22 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mAdapter = new MaterialTransitionAdapter();
         mRecyclerView.setAdapter(mAdapter);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

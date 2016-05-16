@@ -5,6 +5,9 @@
         <item name="colorPrimaryDark">#1565C0</item>
     </style>
 
+    <style name="MyAppThemeTransStatus" parent="MyAppTheme">
+    </style>
+
     <style name="ActionToolbar" parent="Widget.Design.CollapsingToolbar">
         <item name="android:background">@color/colorPrimary</item>
         <item name="android:textColorPrimary">@color/white</item>
