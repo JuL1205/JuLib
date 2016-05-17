@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +34,7 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
 
     private Toolbar mToolbar;
     private DrawerLayout mDrawerLayout;
+    private CollapsingToolbarLayout mCollapsingToolbarLayout;
 
     public static void invoke(Context context){
         Intent i = new Intent(context, MaterialTransitionActivity.class);
@@ -52,6 +54,9 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        mCollapsingToolbarLayout.setExpandedTitleColor(0xffff0000);
+        mCollapsingToolbarLayout.setCollapsedTitleTextColor(0xffffffff);
+
         mPresenter.initSampleImageList();
 
     }
@@ -68,6 +73,8 @@ public class MaterialTransitionActivity extends AppCompatActivity implements Mat
         setSupportActionBar(mToolbar);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        mCollapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
     }
 
     @Override
