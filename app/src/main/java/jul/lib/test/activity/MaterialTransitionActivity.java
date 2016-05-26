@@ -28,11 +28,6 @@ import jul.lib.test.presenter.MaterialTransitionPresenter;
  * Created by owner on 2016. 5. 4..
  */
 public class MaterialTransitionActivity extends AppCompatActivity{
-
-//    private RecyclerView mRecyclerView;
-//    private LinearLayoutManager mLinearLayoutManager;
-//    private MaterialTransitionAdapter mAdapter;
-
     private Toolbar mToolbar;
     private DrawerLayout mDrawerLayout;
     private CollapsingToolbarLayout mCollapsingToolbarLayout;
@@ -57,17 +52,9 @@ public class MaterialTransitionActivity extends AppCompatActivity{
 
         mCollapsingToolbarLayout.setExpandedTitleColor(0xffa3a3a3);
         mCollapsingToolbarLayout.setCollapsedTitleTextColor(0xffffffff);
-
     }
 
     private void initViews(){
-//        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-//        mLinearLayoutManager = new LinearLayoutManager(this);
-//        mRecyclerView.setLayoutManager(mLinearLayoutManager);
-//        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-//        mAdapter = new MaterialTransitionAdapter();
-//        mRecyclerView.setAdapter(mAdapter);
-
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 

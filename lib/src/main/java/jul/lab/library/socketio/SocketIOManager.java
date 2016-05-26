@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import jul.lab.library.log.Log;
 import jul.lab.library.socketio.protocol.ProtocolBehavior;
@@ -35,9 +37,14 @@ public class SocketIOManager {
 
     private ProtocolBehavior mStartProtocol;
 
+    private Timer mExpireTimer = new Timer();
+
     public interface OnNotiEventListener{
         void onSuccess(ResponseModel responseModel);
     }
+
+    private long REQ_TIMEOUT_MS = 5 * 1000;
+    private Handler mUiHandler = new Handler(Looper.getMainLooper());
 
     public static void clearForTest(){
         sInstance = null;
@@ -92,7 +99,12 @@ public class SocketIOManager {
     }
 
     private void registerListener(String event, Emitter.Listener listener){
-        if(event != null && listener != null && event.length() > 0 && !mEventList.contains(event)){
+        if(mEventList.contains(event)){
+            mSocket.off(event);
+            mEventList.remove(event);
+        }
+
+        if(event != null && listener != null && event.length() > 0 /*&& !mEventList.contains(event)*/){
             mEventList.add(event);
             mSocket.on(event, listener);
         }
@@ -104,8 +116,10 @@ public class SocketIOManager {
     }
 
     public void removeNotiEventListener(String event){
-        Log.w("remove noti event["+event+"]");
-        mNotiEventListeners.remove(event);
+        if(mNotiEventListeners.containsKey(event)){
+            Log.w("remove noti event["+event+"]");
+            mNotiEventListeners.remove(event);
+        }
     }
 
     public void removeAllNotiEventListener(){
@@ -119,38 +133,42 @@ public class SocketIOManager {
      * @param event
      */
     public void registerNotiEvent(final int myUserNo, final String event, final OnResponseListener listener){
-        if(!mEventList.contains(event)){
-            mEventList.add(event);
+        if(mEventList.contains(event)){
+            mSocket.off(event);
+            mEventList.remove(event);
+        }
+//        if(!mEventList.contains(event)){
+        mEventList.add(event);
 
-            mSocket.on(event, new Emitter.Listener() {
-                @Override
-                public void call(final Object... args) {
+        mSocket.on(event, new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
 //                    final OnResponseListener listener = mNotiEventListeners.get(event);
-                    if (listener != null) {
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                ResponseModel resModel = listener.onResponse(event, args[0].toString());
+                if (listener != null) {
+                    mUiHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ResponseModel resModel = listener.onResponse(event, args[0].toString());
 
-                                if (resModel != null && (resModel._userNo == -1 || resModel._userNo == myUserNo)) {   //내 패킷일 경우
-                                    OnNotiEventListener dispatcher = mNotiEventListeners.get(event);
-                                    if (dispatcher != null) {
-                                        dispatcher.onSuccess(resModel);
-                                    } else {
-                                        Log.w("Event[" + event + "] dispatcher listener is null.");
-                                    }
-                                } else { //그러지 않을 경우
-                                    if (resModel != null) {
-                                        Log.w("This packet is not mine. myUserNo[" + myUserNo + "]/packetUserNo[" + resModel._userNo + "]");
-                                    }
+                            if (resModel != null && (resModel._userNo == -1 || resModel._userNo == myUserNo)) {   //내 패킷일 경우
+                                OnNotiEventListener dispatcher = mNotiEventListeners.get(event);
+                                if (dispatcher != null) {
+                                    dispatcher.onSuccess(resModel);
+                                } else {
+                                    Log.w("Event[" + event + "] dispatcher listener is null.");
+                                }
+                            } else { //그러지 않을 경우
+                                if (resModel != null) {
+                                    Log.w("This packet is not mine. myUserNo[" + myUserNo + "]/packetUserNo[" + resModel._userNo + "]");
                                 }
                             }
-                        });
+                        }
+                    });
 
-                    }
                 }
-            });
-        }
+            }
+        });
+//        }
     }
 
     public void unregisterAllListener(){
@@ -162,22 +180,69 @@ public class SocketIOManager {
         }
     }
 
+
+    abstract class ExpirationListener implements Emitter.Listener{
+        private ProtocolBehavior mProtocol;
+        private TimerTask mExpireTask;
+
+        public ExpirationListener(ProtocolBehavior protocol){
+            mProtocol = protocol;
+            mExpireTask = new TimerTask() {
+                @Override
+                public void run() {
+                    onExpire(mProtocol);
+                }
+            };
+        }
+
+        void countdown(){
+            //요청에 대한 expire countdown(5초) 시작
+            mExpireTimer.schedule(mExpireTask, REQ_TIMEOUT_MS);
+        }
+
+        @Override
+        public void call(Object... args) {
+            mExpireTask.cancel();  //response 가 왔으면 expire countdown 은 취소.
+            onResponse(mProtocol, args[0].toString());
+        }
+
+        abstract void onExpire(ProtocolBehavior protocol);
+
+        abstract void onResponse(ProtocolBehavior protocol, String data);
+    }
+
     /**
      * 1회성 req-res 통신을 위한 함수. res listener는 알아서 해제된다.
      * @param protocol
      * @param resDispatcher
      */
-    public void send(final int myUserNo, final ProtocolBehavior protocol, final OnResponseListener resDispatcher){
-
-        final Emitter.Listener listener = new Emitter.Listener() {
+    public void send(final ProtocolBehavior protocol, final OnResponseListener resDispatcher){
+        final Emitter.Listener listener = new ExpirationListener(protocol) {
             @Override
-            public void call(final Object... args) {
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
+            void onExpire(ProtocolBehavior protocol) {
+                Log.w("Expire protocol : "+protocol.getRequestName()+"\n Try disconnect and reconnect.");
+                disconnect();   //연결 끊고,
+                mUiHandler.postDelayed(new Runnable() {     //1초후 재연결
+                    @Override
+                    public void run() {
+                        send(mStartProtocol, new OnResponseListener<ResponseModel>(ResponseModel.class) {
+                            @Override
+                            public void onResponse(String event, ResponseModel model) {
+                            }
+                        });
+                    }
+                }, 1000);
+
+            }
+
+            @Override
+            void onResponse(final ProtocolBehavior protocol, final String data) {
+                mUiHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if(resDispatcher != null){
-                            Log.v("["+protocol.getResponseName()+"] origin data : " + args[0]);
-                            ResponseModel res = resDispatcher.onResponse(protocol.getResponseName(), args[0].toString());
+                            Log.v("["+protocol.getResponseName()+"] origin data : " + data);
+                            ResponseModel res = resDispatcher.onResponse(protocol.getResponseName(), data.toString());
                             if(mInvalidAuthCodes.contains(res._resCode)){    //어떤 요청이었든 이 res code가 내려오면 start protocol부터 다시 날려줘야 한다.
                                 doSend(mStartProtocol, null);
                             }
@@ -189,6 +254,9 @@ public class SocketIOManager {
             }
         };
 
+
+
+
         if(!isConnected()){   //연결이 되어있지 않다면 자동 연결 및 MobStart 요청 후 send
             getInstance().registerListener(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
@@ -196,6 +264,7 @@ public class SocketIOManager {
                     mEventList.remove(Socket.EVENT_CONNECT);
                     mSocket.off(Socket.EVENT_CONNECT, this);
 
+//                    MobStartProtocol mobStart = new MobStartProtocol(myUserNo);
                     if(mStartProtocol.getRequestName().equals(protocol.getRequestName())){    //요청하려는 패킷이 어차피 start protocol일 경우
                         doSend(protocol, listener);
                     } else{
@@ -213,6 +282,11 @@ public class SocketIOManager {
                         public void call(Object... args) {
                             Log.e("!!!!!!!!!!!! socket disconnect !!!!!!!!!!!!!!");
                             unregisterAllListener();
+
+//                            mNotiEventListeners.clear();
+
+//                            mSocket = null;
+//                            sInstance = null;
                         }
                     });
 
@@ -221,6 +295,11 @@ public class SocketIOManager {
                         public void call(Object... args) {
                             Log.e("!!!!!!!!!!!! socket timeout !!!!!!!!!!!!!!");
                             unregisterAllListener();
+
+//                            mNotiEventListeners.clear();
+
+//                            mSocket = null;
+//                            sInstance = null;
                         }
                     });
 
@@ -229,6 +308,11 @@ public class SocketIOManager {
                         public void call(Object... args) {
                             Log.e("!!!!!!!!!!!! socket connect error !!!!!!!!!!!!!!");
                             unregisterAllListener();
+
+//                            mNotiEventListeners.clear();
+
+//                            mSocket = null;
+//                            sInstance = null;
                         }
                     });
 
@@ -243,9 +327,12 @@ public class SocketIOManager {
 
     private void doSend(ProtocolBehavior protocol, Emitter.Listener listener){
         registerListener(protocol.getResponseName(), listener);
-        String reqName = protocol.getRequestName();
-        String reqParam = protocol.getRequestParam2String();
-        Log.i("\n============Req============\n"+reqName + reqParam+"\n===========================");
+        final String reqName = protocol.getRequestName();
+        final String reqParam = protocol.getRequestParam2String();
         mSocket.emit(reqName, reqParam);
+
+        if(listener != null && listener instanceof ExpirationListener){
+            ((ExpirationListener)listener).countdown();
+        }
     }
 }
